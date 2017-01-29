@@ -26,7 +26,7 @@ DATE=`date +%Y-%m-%d`
 # ----------------------------------------------
 # ZWAVE INSTALLATION
 # ----------------------------------------------
-inst_zwave (){
+inst_zwave(){
 printf "\033c"
 echo -e "${RED}Really want to start install of zwave support for HASS?${NC}\n"
 read -p "Press [ENTER] to continue or CTRL-C to abort..."
@@ -55,6 +55,8 @@ echo -e "${RED}About to Update system. This might take a long time (apt-get upgr
 read -p "Press [ENTER] to continue or CTRL-C to abort..."
 sudo apt-get update -y
 sudo apt-get upgrade -y
+#Call the update hass function
+update_has_version
 #install commands for zwave Aeotec
 sudo apt-get install cython3 libudev-dev python3-sphinx python3-setuptools -y
 sudo pip3 install --upgrade cython
@@ -74,7 +76,7 @@ read -p "Please [ENTER] to return to menu..."
 # ----------------------------------------------
 # NMAP INSTALLATION
 # ----------------------------------------------
-inst_nmap (){
+inst_nmap(){
 #install commands for nmap
 sudo apt-get install net-tools nmap -y
 sudo apt-get install npm
@@ -124,7 +126,7 @@ read -p "Please [ENTER] to continue..."
 # ----------------------------------------------
 # Install Uncomplicated Firewall
 # ----------------------------------------------
-inst_ufw (){
+inst_ufw(){
 #Install en config commands firewall
 echo -e "${RED}This will enable a simple firewall and opens ports: 22, 80, 443 and 8123.${NC}\n"
 read -p "Please [ENTER] to continue..."
@@ -136,59 +138,9 @@ read -p "Please [ENTER] to return to menu..."
 
 
 # ----------------------------------------------
-# Install Apache and SSL certs (plz customize the certs!!)
-# ----------------------------------------------
-inst_apache (){
-#Install commands for apache
-read -p "About to install Apache2. Please press CTRL-C to abort or [ENTER] to continue..."
-sudo apt-get install apache2 -y
-sudo a2enmod ssl
-sudo a2enmod proxy
-sudo a2enmod proxy_http
-sudo a2enmod rewrite
-sudo a2enmod headers
-#Recover commands for startsll certificates
-read -p "Please press CTRL-C abort if you DO NOT want to restore ssl certificates"
-if [ $cert_loc="/certs_default" ]; then
-   echo "The location of your certs is still default value: $cert_loc."
-   read -p "Do you want to specify a location now? [y/n]" answer3
-	if [[ $answer3 = y ]] ; then
-	   read -p "Please enter the full path of the startssl certificates:"
-	   read cert_loc_man
-	   read -p "Please your domainname for your start ssl certificates"
-	   read host_domain_man
-	   sudo \cp -rf $cert_loc_man/2_$host_domain_man_bundle.crt /etc/ssl/private/2_$host_domain_man.crt
-	   sudo \cp -rf $cert_loc_man/1_root_bundle.crt /etc/ssl/certs/1_root_bundle.crt
-	   sudo \cp -rf $cert_loc_man/csrkeystartssl.key /etc/ssl/private/hass.key
-#Below needs changing to variables
-		sudo \cp -rf /media/hass-nas/hass/apache2/apache2.conf /etc/apache2/
-   		sudo \cp -vr /media/hass-nas/hass/apache2/sites-available/* /etc/apache2/sites-available
-   		sudo \cp -vr /media/hass-nas/hass/apache2/sites-enabled/* /etc/apache2/sites-enabled
-	   	sudo a2enconf $host_domain_man
-	fi
-else
-   read -p "Please enter username to connect to NAS"
-   read nas_usr
-   read -p "Please enter password to connect to NAS"
-   read nas_psw
-   sudo \cp -rf /media/hass-nas$cert_loc/2_$host_domain_bundle.crt /etc/ssl/private/2_$host_domain.crt
-   sudo \cp -rf $cert_loc_man/1_root_bundle.crt /etc/ssl/certs/1_root_bundle.crt
-   sudo \cp -rf /media/hass-nas$cert_loc/csrkeystartssl.key /etc/ssl/private/hass.key
-#Below needs changing to variables
-   sudo \cp -rf /media/hass-nas/hass/apache2/apache2.conf /etc/apache2/
-   sudo \cp -vr /media/hass-nas/hass/apache2/sites-available/* /etc/apache2/sites-available
-   sudo \cp -vr /media/hass-nas/hass/apache2/sites-enabled/* /etc/apache2/sites-enabled
-   #enable your domainname in apache2
-   sudo a2enconf $host_domain
-   read -p "Please [ENTER] to continue..."
-fi
-}
-
-
-# ----------------------------------------------
 # Setup Static Ip-address
 # ----------------------------------------------
-stat_ip_addr (){
+stat_ip_addr(){
 #Change to static ip-address
 echo "Please enter the ip-address you want to this raspberry pi 3 to be accessed via eth0"
 read st_ipaddr
@@ -213,7 +165,7 @@ finish_reboot
 # ----------------------------------------------
 # Backup Hass
 # ----------------------------------------------
-backup_hass (){
+backup_hass(){
 #Backup commands HASS files from NAS
 read -p "Do you want to backup to NAS [y/n]" answer2
 if [[ $answer2 = y ]] ; then
@@ -242,7 +194,7 @@ read -p "End of backup script. Please check above for errors. Press [ENTER] cont
 # ----------------------------------------------
 # Mount NAS function
 # ----------------------------------------------
-mounting_nas (){
+mounting_nas(){
 #mounting commands NAS
 if [[ $nas_share = //192.168.x.x/share ]] ; then
 	echo -e "${RED}The nas_share is still default value: $nas_share.${NC}\n"
@@ -272,7 +224,7 @@ fi
 # ----------------------------------------------
 # Reboot function
 # ----------------------------------------------
-finish_reboot (){
+finish_reboot(){
 #Reboot command after install
 read -p "Please enter to finish and reboot the system"
 sudo shutdown -r 0
@@ -324,13 +276,12 @@ show_menus() {
 	echo " 2. Install nmap tracker"
 	echo " 3. Install Eneco Toon Support"
 	echo " 4. Install Uncomplicated FireWall"
-	echo " 5. Install Apache2 + SSL Certs (customize this to your own)"
-	echo " 6. Backup HASS to NAS or local folder"
-	echo " 7. Set static ip-address (do not use, doesn't work yet!!!)"
-	echo " 8. Recover HASS configs from Backup"
-	echo " 9. Check HASS config"
-	echo "10. Update HASS to latest version"
-	echo "11. Quit"
+	echo " 5. Backup HASS to NAS or local folder"
+	echo " 6. Set static ip-address (do not use, doesn't work yet!!!)"
+	echo " 7. Recover HASS configs from Backup"
+	echo " 8. Check HASS config"
+	echo " 9. Update HASS to latest version"
+	echo "10. Quit"
 }
 # read input from the keyboard and take a action
 read_options(){
@@ -341,13 +292,12 @@ read_options(){
 		2) inst_nmap ;;
 		3) inst_toon ;;
 		4) inst_ufw ;;
-		5) inst_apache ;;
-		6) backup_hass ;;
-		7) stat_ip_addr ;;
-		8) recover_hass ;;
-		9) check_config ;;
-		10) update_has_version ;;
-		11) exit 0;;
+		5) backup_hass ;;
+		6) stat_ip_addr ;;
+		7) recover_hass ;;
+		8) check_config ;;
+		9) update_has_version ;;
+		10) exit 0;;
 		*) echo -e "${RED}Error...${NC}" && sleep 2
 	esac
 }

@@ -1,4 +1,4 @@
-﻿# Bash Script to Install, Backup & Recover Homeassistant
+﻿# Bash Script to finish the configuration for HASSBIAN
 I created this script to easily to finish the installation of HASSbian with the following features:
 - Latest Home Assistant version
 - Zwave support
