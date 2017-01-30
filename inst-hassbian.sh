@@ -138,6 +138,14 @@ read -p "Please [ENTER] to return to menu..."
 
 
 # ----------------------------------------------
+# Install MySQL support
+# ----------------------------------------------
+inst_mysql(){
+sudo apt-get install libmysqlclient-dev
+pip3 install pymysql
+
+
+# ----------------------------------------------
 # Setup Static Ip-address
 # ----------------------------------------------
 stat_ip_addr(){
@@ -220,6 +228,28 @@ fi
 }
 
 
+# ----------------------------------------------
+# Generate ssl - customize below domainname and email
+# ----------------------------------------------
+generate_ssl (){
+mkdir certbot
+cd certbot/
+wget https://dl.eff.org/certbot-auto
+chmod a+x certbot-auto
+./certbot-auto certonly --standalone \
+                          --standalone-supported-challenges http-01 \
+                          --email email@gmail.com \
+                          -d hass.domainname.org
+}
+
+
+# ----------------------------------------------
+# Renew ssl
+# ----------------------------------------------
+renew_ssl (){
+./certbot-auto renew --quiet --no-self-upgrade --standalone \
+                     --standalone-supported-challenges http-01
+}
 
 # ----------------------------------------------
 # Reboot function
@@ -276,12 +306,15 @@ show_menus() {
 	echo " 2. Install nmap tracker"
 	echo " 3. Install Eneco Toon Support"
 	echo " 4. Install Uncomplicated FireWall"
-	echo " 5. Backup HASS to NAS or local folder"
-	echo " 6. Set static ip-address (do not use, doesn't work yet!!!)"
-	echo " 7. Recover HASS configs from Backup"
-	echo " 8. Check HASS config"
-	echo " 9. Update HASS to latest version"
-	echo "10. Quit"
+	echo " 5. Install MySQL support"
+	echo " 6. Backup HASS to NAS or local folder"
+	echo " 7. Set static ip-address (do not use, doesn't work yet!!!)"
+	echo " 8. Recover HASS configs from Backup"
+	echo " 9. Check HASS config"
+	echo "10. Update HASS to latest version"
+	echo "11. Generate SSl - Letsencrypt"
+	echo "12. Renew SSl - Letsencrypt"
+	echo "13. Quit"
 }
 # read input from the keyboard and take a action
 read_options(){
@@ -292,12 +325,15 @@ read_options(){
 		2) inst_nmap ;;
 		3) inst_toon ;;
 		4) inst_ufw ;;
-		5) backup_hass ;;
-		6) stat_ip_addr ;;
-		7) recover_hass ;;
-		8) check_config ;;
-		9) update_has_version ;;
-		10) exit 0;;
+		5) inst_mysql ;;
+		6) backup_hass ;;
+		7) stat_ip_addr ;;
+		8) recover_hass ;;
+		9) check_config ;;
+		10) update_has_version ;;
+		11) generate_ssl ;;
+		12) renew_ssl ;;
+		13) exit 0;;
 		*) echo -e "${RED}Error...${NC}" && sleep 2
 	esac
 }
